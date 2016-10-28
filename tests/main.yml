@@ -1,0 +1,14 @@
+---
+
+- hosts: all
+  vars:
+    mariadb_mysqld_config:
+      - 'innodb_buffer_pool_size = {{ (ansible_memtotal_mb * 0.75) | int }}M'
+
+  pre_tasks:
+    - name: Update APT cache
+      apt:
+        update_cache: True
+
+  roles:
+    - this_role

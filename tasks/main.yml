@@ -1,0 +1,129 @@
+---
+
+- name: Install role dependencies
+  apt:
+    name: '{{ item }}'
+    state: 'present'
+    install_recommends: False
+  with_flattened: '{{ mariadb_mysqld_dependencies }}'
+
+# Taken from the DebOps mariadb_server role:
+# https://github.com/debops/ansible-mariadb_server/blob/master/tasks/main.yml
+#
+# We want to have our configuration enabled as soon as possible for UTF-8
+# support, this check lets us know if MariaDB / MySQL server has just been
+# installed and we can quickly apply our own configuration and restart the
+# server before any more changes happen.
+- name: Check if mariadb-server is installed
+  environment:
+    LC_MESSAGES: 'C'
+  shell: dpkg-query -W -f='${Version}\n' 'mariadb-server' | grep -v '^$'
+  register: mariadb_server_register_version
+  always_run: True
+  changed_when: False
+  failed_when: False
+
+- name: Get upstream APT GPG key
+  apt_key:
+    id: '{{ item }}'
+    keyserver: '{{ ansible_local.core.keyserver
+                   if (ansible_local|d() and ansible_local.core|d() and
+                       ansible_local.core.keyserver)
+                   else "hkp://pool.sks-keyservers.net" }}'
+    state: 'present'
+  with_items: '{{ mariadb_apt_keys }}'
+
+- name: Configure upstream APT repository
+  apt_repository:
+    repo: '{{ mariadb_repository }}'
+    state: 'present'
+    update_cache: True
+
+- name: Install mariadb-server
+  apt:
+    name: 'mariadb-server'
+    state: 'present'
+    install_recommends: False
+    update_cache: True
+  register: mariadb_server_register_install_status
+
+- name: Configure database client on first install
+  template:
+    src: 'etc/mysql/conf.d/client.cnf.j2'
+    dest: '/etc/mysql/conf.d/client.cnf'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+  when: (mariadb_server_register_version | d() and not mariadb_server_register_version.stdout) 
+
+- name: Configure the database server
+  template:
+    src: 'etc/mysql/conf.d/server.cnf.j2'
+    dest: '/etc/mysql/conf.d/server.cnf'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+  register: mariadb_register_config_change
+
+- name: Configure automysqlbackup
+  template:
+    src: 'etc/default/automysqlbackup.j2'
+    dest: '/etc/default/automysqlbackup'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+  when: mariadb_mysqld_backup
+
+- name: Restart the database server on first install
+  service:
+    name: 'mysql'
+    state: 'restarted'
+  when: ((mariadb_server_register_version | d() and not mariadb_server_register_version.stdout) and
+        (mariadb_server_register_install_status | d() and mariadb_server_register_install_status | changed))
+
+- name: Restart the database server on config change
+  service:
+    name: 'mariadb'
+    state: 'restarted'
+  when: (mariadb_mysqld_retsart_on_config_change) and
+        (mariadb_register_config_change | changed)
+
+- name: Drop unnecessary root accounts
+  mysql_user:
+    name: 'root'
+    host: '{{ item }}'
+    state: 'absent'
+  with_flattened:
+    - ['127.0.0.1', '::1']
+    - ['{{ ansible_hostname if (ansible_hostname != "localhost") else [] }}']
+  when: item | d()
+
+- name: Update database root password
+  mysql_user:
+    name: 'root'
+    host: 'localhost'
+    password: '{{ mariadb_mysqld_root_password }}'
+
+- name: Create /root/.my.cnf file with root credentials
+  template:
+    src: 'root/my.cnf.j2'
+    dest: '/root/.my.cnf'
+    owner: 'root'
+    group: 'root'
+    mode: '0600'
+
+- name: Delete anonymous database user
+  mysql_user:
+    user: ''
+    host: '{{ item }}'
+    state: 'absent'
+  with_items:
+    - '{{ ansible_hostname }}'
+    - 'localhost'
+
+- name: Remove test database on first install
+  mysql_db:
+    db: 'test'
+    state: 'absent'
+  when: ((mariadb_server_register_version | d() and not mariadb_server_register_version.stdout) and
+        (mariadb_server_register_install_status | d() and mariadb_server_register_install_status | changed))

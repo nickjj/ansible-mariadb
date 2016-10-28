@@ -1,0 +1,43 @@
+# {{ ansible_managed }}
+
+{% if mariadb_default_mysqld_config or mariadb_mysqld_config %}
+[mysqld]
+{% for setting in (mariadb_default_mysqld_config + mariadb_mysqld_config) %}
+{{ setting }}
+{% endfor %}
+{% endif %}
+
+{% if mariadb_default_mysqld_safe_config or mariadb_mysqld_safe_config %}
+[mysqld_safe]
+{% for setting in (mariadb_default_mysqld_safe_config + mariadb_mysqld_safe_config) %}
+{{ setting }}
+{% endfor %}
+{% endif %}
+
+{% if mariadb_default_galera_config or mariadb_galera_config %}
+[galera]
+{% for setting in (mariadb_default_galera_config + mariadb_galera_config) %}
+{{ setting }}
+{% endfor %}
+{% endif %}
+
+{% if mariadb_default_mysqldump_config or mariadb_mysqldump_config %}
+[mysqldump]
+{% for setting in (mariadb_default_mysqldump_config + mariadb_mysqldump_config) %}
+{{ setting }}
+{% endfor %}
+{% endif %}
+
+{% if mariadb_default_mysql_config or mariadb_mysql_config %}
+[mysql]
+{% for setting in (mariadb_default_mysql_config + mariadb_mysql_config) %}
+{{ setting }}
+{% endfor %}
+{% endif %}
+
+{% if mariadb_default_isamchk_config or mariadb_isamchk_config %}
+[isamchk]
+{% for setting in (mariadb_default_isamchk_config + mariadb_isamchk_config) %}
+{{ setting }}
+{% endfor %}
+{% endif %}

@@ -1,0 +1,8 @@
+# {{ ansible_managed }}
+
+{% if mariadb_default_client_config or mariadb_client_config %}
+[client]
+{% for setting in (mariadb_default_client_config + mariadb_client_config) %}
+{{ setting }}
+{% endfor %}
+{% endif %}
