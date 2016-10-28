@@ -150,4 +150,6 @@ MIT
 ## Special thanks
 
 Thanks to [Maciej Delmanowski](https://twitter.com/drybjed) for his work done
-on the DebOps mariadb-server role. This role is quite inspired by his.
+on the
+[DebOps mariadb_server role](https://github.com/debops/ansible-mariadb_server).
+This role is quite inspired by his.
