@@ -1,4 +1,4 @@
-## What is ansible-mariadb?
+## What is ansible-mariadb? [![Build Status](https://secure.travis-ci.org/nickjj/ansible-mariadb.png)](http://travis-ci.org/nickjj/ansible-mariadb)
 
 It is an [Ansible](http://www.ansible.com/home) role to install and configure
 MariaDB.
