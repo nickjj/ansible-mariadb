@@ -46,3 +46,5 @@ mariadb_distribution_release: '{{ ansible_local.core.distribution_release
                                      ansible_local.core.distribution_release|d())
                                  else ansible_distribution_release }}'
 mariadb_repository: 'deb http://nyc2.mirrors.digitalocean.com/mariadb/repo/{{ mariadb_upstream_version }}/{{ mariadb_distribution | lower }} {{ mariadb_distribution_release }} main'
+
+mariadb_apt_cache_time: 86400

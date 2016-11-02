@@ -98,6 +98,9 @@ mariadb_distribution_release: '{{ ansible_local.core.distribution_release
 
 # Address of the MariaDB repository.
 mariadb_repository: 'deb http://nyc2.mirrors.digitalocean.com/mariadb/repo/{{ mariadb_upstream_version }}/{{ mariadb_distribution | lower }} {{ mariadb_distribution_release }} main'
+
+# How long should the apt-cache last in seconds?
+mariadb_apt_cache_time: 86400
 ```
 
 ## Example playbook

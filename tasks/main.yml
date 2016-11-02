@@ -45,6 +45,7 @@
     state: 'present'
     install_recommends: False
     update_cache: True
+    cache_valid_time: '{{ mariadb_apt_cache_time }}'
   register: mariadb_server_register_install_status
 
 - name: Configure database client on first install
