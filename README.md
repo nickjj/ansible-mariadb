@@ -128,6 +128,9 @@ your `inventory` directory and then making it look like this:
 ```
 ---
 
+# Always set your own root password.
+mariadb_mysqld_root_password: 'yourcustompassword'
+
 # 6 = Saturday, 1 = Monday, 2 = Tuesday, etc..
 mariadb_mysqld_backup_weekly_backup_day: 1
 
